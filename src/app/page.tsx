@@ -53,11 +53,23 @@ const TasksPage = () => {
     }
   };
 
+  const handleUpdateTask = async (id: number, status: boolean) => {
+    try {
+      if (status) await axios.patch(`${baseURL}/task/${id}/done`);
+      else await axios.patch(`${baseURL}/task/${id}/undone`);
+      setTasks(
+        tasks.map((task) => (task.id === id ? { ...task, status } : task))
+      );
+    } catch (err) {
+      setError("Erro ao atualizar tarefa");
+    }
+  };
+
   if (loading) return <p className="text-center">Loading...</p>;
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center w-11/12 mx-auto">
+    <div className="min-h-screen flex flex-col items-center justify-center sm:w-11/12 lg:w-5/12 mx-auto">
       <div className="flex flex-col items-center p-4 w-full">
         <button
           onClick={() => setIsEditing(!isEditing)}
@@ -70,14 +82,20 @@ const TasksPage = () => {
           {tasks.map((task) => (
             <li
               key={task.id}
-              className={`flex justify-between items-center p-2 ${
-                task.status ? "text-green-600 line-through" : "text-white-700"
+              className={`cursor-pointer flex justify-between items-center p-2 ${
+                task.status ? "opacity-40 line-through" : "text-white-700"
               } capitalize`}
+              onClick={() =>
+                !isEditing && handleUpdateTask(task.id, !task.status)
+              }
             >
               <span>{task.name}</span>
 
               <button
-                onClick={() => handleDeleteTask(task.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteTask(task.id);
+                }}
                 className={`ml-4 px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 ${
                   isEditing ? "visible" : "invisible"
                 }`}
@@ -97,16 +115,16 @@ const TasksPage = () => {
           />
         </ul>
       </div>
-      <div className="flex justify-center mb-auto w-full">
-      <button
-        onClick={() => {
-          setIsAdding(!isAdding);
-          if (isAdding) handleAddTask();
-        }}
-        className="px-4 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-11/12"
-      >
-        {isAdding ? "Concluir" : "Adicionar"}
-      </button>
+      <div className="flex flex-col items-center p-4 w-full mb-auto">
+        <button
+          onClick={() => {
+            setIsAdding(!isAdding);
+            if (isAdding) handleAddTask();
+          }}
+          className="flex justify-center px-4 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 w-11/12"
+        >
+          {isAdding ? "Concluir" : "Adicionar"}
+        </button>
       </div>
     </div>
   );
